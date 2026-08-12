@@ -1,6 +1,14 @@
 {
-  "name": "@se-2/hardhat",
-  "version": "0.0.1",
+  "name": "@chainfusion/hardhat",
+  "version": "1.0.0",
+  "description": "ChainFusion smart contract workspace (Hardhat).",
+  "author": "bharat3645",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bharat3645/ChainFusion.git",
+    "directory": "Frontend/packages/hardhat"
+  },
   "scripts": {
     "account": "hardhat run scripts/listAccount.ts",
     "chain": "hardhat node --network hardhat --no-deploy",

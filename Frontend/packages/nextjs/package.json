@@ -1,7 +1,15 @@
 {
-  "name": "@se-2/nextjs",
-  "version": "0.1.0",
+  "name": "@chainfusion/nextjs",
+  "version": "1.0.0",
   "private": true,
+  "description": "ChainFusion web app (Next.js).",
+  "author": "bharat3645",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bharat3645/ChainFusion.git",
+    "directory": "Frontend/packages/nextjs"
+  },
   "scripts": {
     "build": "next build",
     "check-types": "tsc --noEmit --incremental",

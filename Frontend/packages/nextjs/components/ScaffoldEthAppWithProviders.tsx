@@ -46,8 +46,16 @@ export const ScaffoldEthAppWithProviders = ({ children }: { children: React.Reac
 
   return (
     <WagmiProvider config={wagmiConfig}>
-      <GoogleOAuthProvider clientId={"657003020885-j3tf590vhjblp7vl4mkglb1q6lkltoj6.apps.googleusercontent.com"}>
-        <OktoProvider apiKey={"8398e1a6-ffd8-4a0c-8c6f-3153f6d2f75e"} buildType={BuildType.SANDBOX}>
+      <GoogleOAuthProvider
+        clientId={
+          process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+          "657003020885-j3tf590vhjblp7vl4mkglb1q6lkltoj6.apps.googleusercontent.com"
+        }
+      >
+        <OktoProvider
+          apiKey={process.env.NEXT_PUBLIC_OKTO_CLIENT_API_KEY || "8398e1a6-ffd8-4a0c-8c6f-3153f6d2f75e"}
+          buildType={BuildType.SANDBOX}
+        >
           <QueryClientProvider client={queryClient}>
             <ProvideAgent>
               <ProgressBar height="3px" color="#2299dd" />

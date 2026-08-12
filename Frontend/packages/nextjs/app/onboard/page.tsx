@@ -39,7 +39,7 @@ const OnboardPage: NextPage = () => {
       {/* Background effects */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#9333EA]/10 via-black to-black"></div>
-        <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.02] pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.02] pointer-events-none"></div>
       </div>
 
       <div className="relative container mx-auto px-6 py-12">

@@ -51,3 +51,7 @@ class WorkflowOrchestrator:
         if workflow_name not in self.agents:
             raise HTTPException(status_code=404, detail="Workflow not found")
         return self.agents[workflow_name].get_state(thread_id)
+
+    def getAll(self):
+        """Returns the names of all available workflows."""
+        return list(self.agents.keys())

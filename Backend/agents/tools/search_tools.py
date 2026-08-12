@@ -1,3 +1,4 @@
+import os
 from langchain_community.retrievers import TavilySearchAPIRetriever
 from langchain_community.tools import DuckDuckGoSearchRun
 from tavily import TavilyClient, AsyncTavilyClient
@@ -7,7 +8,7 @@ tavily_search_tool= TavilySearchAPIRetriever(k=3)
 
 duckduckgo_search_tool = DuckDuckGoSearchRun(k=3)
 
-tavily_client = AsyncTavilyClient(api_key="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")
+tavily_client = AsyncTavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
 tavily_tool = Tool(
     name="TavilySearch",

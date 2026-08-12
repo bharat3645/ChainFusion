@@ -1,13 +1,15 @@
-import base64
-from typing import Optional, Union
-from fastapi import APIRouter, HTTPException, Form, Path, UploadFile, File
-from agents.orchestrator import WorkflowOrchestrator
-import json
-import traceback
+from typing import Union
 
-# Create an API router specifically for workflow-related routes
+from fastapi import APIRouter, File, Form, HTTPException, Path, UploadFile
+
+from agents.orchestrator import WorkflowOrchestrator
+from routes._common import merge_file, parse_message
+
+# Mirrors workflow_routes.py under the /stream prefix. Kept as a separate
+# router/orchestrator instance (its own in-memory thread state) pending a
+# real token-by-token streaming implementation; the request-parsing logic is
+# shared via routes/_common.py so the two don't drift out of sync.
 router = APIRouter()
-# Initialize the WorkflowOrchestrator instance
 workflow_orchestrator = WorkflowOrchestrator()
 
 
@@ -23,29 +25,11 @@ async def create_workflow(
     Initiates a new workflow based on the provided workflow name.
     Returns a unique threadId and the initial state of the workflow.
     """
-    try:
-        if message:
-            try:
-                messageJson = json.loads(message)
-            except:
-                raise HTTPException(
-                    status_code=400, detail="Invalid JSON in message")
-            threadId, state = workflow_orchestrator.start(
-                workflowName, messageJson)
-        else:
-            threadId, state = workflow_orchestrator.start(workflowName)
-        
-        if file:
-            file_content = await file.read()
-            encoded_file = base64.b64encode(file_content).decode('utf-8')
-            message_dict = {}
-            message_dict["file"] = encoded_file
-            threadId, state = workflow_orchestrator.start(workflow_name=workflowName, message=message_dict)
+    message_dict = parse_message(message)
+    message_dict = await merge_file(message_dict, file)
 
-
-        return {"status": "success", "state": state, "threadId": threadId}
-    except HTTPException as e:
-        return {"error": e.detail, "status_code": e.status_code}
+    threadId, state = workflow_orchestrator.start(workflowName, message_dict)
+    return {"status": "success", "state": state, "threadId": threadId}
 
 
 @router.get("/{workflowName}/{threadId}")
@@ -56,11 +40,8 @@ async def get_workflow_state(
     """
     Retrieves the current state of an active workflow.
     """
-    try:
-        state = workflow_orchestrator.get_state(workflowName, threadId)
-        return {"status": "success", "state": state}
-    except HTTPException as e:
-        return {"error": e.detail, "status_code": e.status_code}
+    state = workflow_orchestrator.get_state(workflowName, threadId)
+    return {"status": "success", "state": state}
 
 
 @router.post("/{workflowName}/{threadId}")
@@ -75,52 +56,19 @@ async def chat_workflow(
     Sends additional input to an active workflow.
     Accepts a JSON message and an optional file to continue the workflow session.
     """
-    try:
-        # Validate threadId
-        if not threadId:
-            raise HTTPException(
-                status_code=400, detail="Thread ID is required")
+    if not message:
+        raise HTTPException(status_code=400, detail="Message is required")
 
-        # Validate message
-        if not message:
-            raise HTTPException(status_code=400, detail="Message is required")
+    message_dict = parse_message(message)
+    message_dict = await merge_file(message_dict, file)
 
-        # Parse the JSON message
-        try:
-            message_dict = json.loads(message)
-        except json.JSONDecodeError:
-            raise HTTPException(
-                status_code=400, detail="Invalid JSON in message")
+    state = workflow_orchestrator.chat(workflowName, threadId, message_dict)
+    return {"status": "success", "state": state}
 
-        # Process the optional file
-        if file:
-            file_data = await file.read()
-            # Encode the file data to base64
-            encoded_file = base64.b64encode(file_data).decode('utf-8')
-            message_dict["file"] = encoded_file
-
-        # Continue workflow
-        state = workflow_orchestrator.chat(
-            workflowName, threadId, message_dict)
-
-        return {"status": "success", "state": state}
-
-    except HTTPException as e:
-        print(traceback.format_exc())
-        return {"error": e.detail, "status_code": e.status_code}
-    except Exception as e:
-        print(traceback.format_exc())
-        return {"error": "An unexpected error occurred.", "detail": str(e)}
 
 @router.get("")
 async def list_workflows():
     """
     Lists all available workflows.
     """
-    try:
-        workflow_orchestrator.getAll()
-    except HTTPException as e:
-        return {"error": e.detail, "status_code": e.status_code}
-    except Exception as e:
-        return {"error": "An unexpected error occurred.", "detail": str(e)}
-
+    return {"status": "success", "workflows": workflow_orchestrator.getAll()}

@@ -32,8 +32,7 @@ export default function BlogsPage() {
       const responseBody = await response.text();
       const decoded = decodeURIComponent(responseBody);
       const cleanedString = decoded.replace(/\\n/g, "").replace(/\\t/g, "").replace(/\\\"/g, '"').replace(/=/g, "");
-      const json = JSON.parse(JSON.stringify(cleanedString));
-      return json;
+      return JSON.parse(cleanedString);
     },
   });
 

@@ -13,7 +13,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           
           {/* Noise texture with proper opacity */}
           <div 
-            className="fixed inset-0 bg-[url('/noise.png')] opacity-[0.15]" 
+            className="fixed inset-0 bg-[url('/noise.svg')] opacity-[0.15]"
             style={{ zIndex: -2, mixBlendMode: 'overlay' }} 
           />
           

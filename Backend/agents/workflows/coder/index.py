@@ -61,17 +61,26 @@ class CoderWorkflow(WorkflowInterface):
         thread_id = stripped_uuid4()
         config = {"configurable": {"thread_id": thread_id}}
         if message:
-            json_message = json.loads(message)
+            # `message` is already a parsed dict by the time it reaches here
+            # (parsed once from the request body in the route layer); calling
+            # json.loads() on it again raised `TypeError: the JSON object must
+            # be str, bytes or bytearray, not dict` on every workflow start
+            # that included an initial message.
+            json_message = message
             initial_message = BaseMessage(content=json_message.get("content", {}), type=json_message.get(
             "type", ""), role=json_message.get("role", ""), file=json_message.get("file", ""))
             initial_state = WorkflowState(
                 wallet_id=self.wallet_id,
                 messages=[initial_message],
-                elementDOM=None,
-                intent=[],
-                improved_prompt="",
-                updated_style={},
-                updated_content=""
+                usecase="",
+                feature_list=[],
+                plan_messages=[],
+                code_messages=[],
+                generated_code="",
+                plan={},
+                token_name="",
+                token_abbreviation="",
+                contract_address=""
             )
             latest_event = None
             for event in self.workflow_instance.stream(initial_state, config, stream_mode="values"):
@@ -81,11 +90,15 @@ class CoderWorkflow(WorkflowInterface):
             initial_state = WorkflowState(
                 wallet_id=self.wallet_id,
                 messages=[],
-                elementDOM=None,
-                intent=[],
-                improved_prompt="",
-                updated_style={},
-                updated_content=""
+                usecase="",
+                feature_list=[],
+                plan_messages=[],
+                code_messages=[],
+                generated_code="",
+                plan={},
+                token_name="",
+                token_abbreviation="",
+                contract_address=""
             )
             latest_event = None
             for event in self.workflow_instance.stream(initial_state, config, stream_mode="values"):
@@ -96,7 +109,8 @@ class CoderWorkflow(WorkflowInterface):
         config = {"configurable": {"thread_id": thread_id}}
         curr_state = self.workflow_instance.get_state(config)
         values = curr_state.values
-        json_message = json.loads(message)
+        # `message` is already a parsed dict (see the note in `start()` above).
+        json_message = message
         if values.get("finished"):
             if values["finished"] is True:
                 return "Chat has ended"
