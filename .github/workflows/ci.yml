@@ -67,7 +67,16 @@ jobs:
           cache-dependency-path: Frontend/yarn.lock
 
       - name: Install dependencies
+        # HUSKY=0 skips the "postinstall: husky install" script. Frontend/ is
+        # a subdirectory of this repo (the .git directory lives one level up
+        # in the repo root), and husky's install() only ever checks for
+        # .git in the current working directory, so it always throws
+        # ".git can't be found" here regardless of environment. Yarn Berry
+        # treats that build-script failure as fatal to the whole install.
+        # Git hooks aren't needed in CI anyway.
         run: yarn install --immutable
+        env:
+          HUSKY: "0"
 
       - name: Compile contracts
         run: yarn compile
